@@ -1,0 +1,75 @@
+# Template GitHub Action pour envoyer une newsletter Roucoule depuis le CI.
+#
+# Usage :
+#   1. Copie ce fichier dans .github/workflows/send-newsletter.yml de ton repo.
+#   2. Settings → Secrets and variables → Actions, configure :
+#        Secrets : ROUCOULE_API_TOKEN, SMTP_HOST, SMTP_PORT,
+#                  SMTP_USERNAME, SMTP_PASSWORD
+#        Variables : ROUCOULE_BASE_URL (ex: https://roucoule.dev)
+#   3. Marque ton article comme `ready_to_send` dans l'UI Roucoule.
+#   4. Onglet Actions → Run workflow → article-id, feed-id, run.
+
+name: Send newsletter via Roucoule
+
+on:
+  workflow_dispatch:
+    inputs:
+      article-id:
+        description: ID de l'article (art_xxx)
+        required: true
+        type: string
+      feed-id:
+        description: ID du feed (feed_xxx)
+        required: true
+        type: string
+      dry-run:
+        description: Dry-run (ne rien envoyer)
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      # Garde UNE seule des deux étapes de setup et UNE seule étape "Send".
+      - name: Setup Node (variante npm)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      # - name: Setup Deno (variante JSR)
+      #   uses: denoland/setup-deno@v2
+      #   with:
+      #     deno-version: v2.x
+      - name: Write config from secrets
+        run: |
+          mkdir -p ~/.config/roucoule
+          cat > ~/.config/roucoule/config.json <<EOF
+          {
+            "baseUrl": "${{ vars.ROUCOULE_BASE_URL }}",
+            "apiToken": "${{ secrets.ROUCOULE_API_TOKEN }}",
+            "smtp": {
+              "host": "${{ secrets.SMTP_HOST }}",
+              "port": ${{ secrets.SMTP_PORT }},
+              "username": "${{ secrets.SMTP_USERNAME }}",
+              "password": "${{ secrets.SMTP_PASSWORD }}"
+            }
+          }
+          EOF
+          chmod 600 ~/.config/roucoule/config.json
+      - name: Send (variante npm)
+        run: |
+          DRY=""
+          if [ "${{ inputs.dry-run }}" = "true" ]; then DRY="--dry-run"; fi
+          npx -y @roucoule/send@latest \
+            --feed-id "${{ inputs.feed-id }}" \
+            $DRY \
+            "${{ inputs.article-id }}"
+      # - name: Send (variante JSR)
+      #   run: |
+      #     DRY=""
+      #     if [ "${{ inputs.dry-run }}" = "true" ]; then DRY="--dry-run"; fi
+      #     deno run -A jsr:@roucoule/send \
+      #       --feed-id "${{ inputs.feed-id }}" \
+      #       $DRY \
+      #       "${{ inputs.article-id }}"
