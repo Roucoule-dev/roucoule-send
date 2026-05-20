@@ -1,0 +1,30 @@
+{
+  "name": "@roucoule/send",
+  "version": "0.1.0",
+  "description": "Open-source CLI and library to send Roucoule newsletters via your own SMTP server.",
+  "license": "MIT",
+  "exports": {
+    ".": "./src/mod.ts",
+    "./cli": "./src/cli.ts"
+  },
+  "tasks": {
+    "cli": "deno run -A src/cli.ts",
+    "test": "deno test -A",
+    "check": "deno fmt --check && deno lint && deno check src/**/*.ts && deno test -A",
+    "build:npm": "deno run -A scripts/build_npm.ts",
+    "fmt": "deno fmt"
+  },
+  "imports": {
+    "@std/assert": "jsr:@std/assert@^1",
+    "@std/cli": "jsr:@std/cli@^1",
+    "@std/fs": "jsr:@std/fs@^1",
+    "@std/path": "jsr:@std/path@^1",
+    "@deno/dnt": "jsr:@deno/dnt@^0.42"
+  },
+  "fmt": { "indentWidth": 2, "singleQuote": false, "lineWidth": 80 },
+  "lint": { "rules": { "tags": ["recommended"] } },
+  "publish": {
+    "include": ["src/**/*.ts", "README.md", "LICENSE", "deno.json"],
+    "exclude": ["src/**/*_test.ts", "scripts/", "npm/"]
+  }
+}
