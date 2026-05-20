@@ -13,12 +13,9 @@ leave your machine.
 
 ## Why this exists
 
-Roucoule offers two send workflows:
-
-1. **Server-side send** (default): Roucoule stores your SMTP credentials
-   encrypted and sends on your behalf. Simple, works for most users.
-2. **External send** (this package): You keep SMTP credentials on your machine.
-   Roucoule never sees them.
+Roucoule never sees your SMTP credentials. This package keeps them on your
+machine and sends newsletters directly to your SMTP server, using the Roucoule
+API only to fetch article content and report delivery results.
 
 ## Installation
 
