@@ -1,6 +1,11 @@
 import type { ApiClient } from "./api.ts";
 import type { SmtpSender } from "./smtp.ts";
-import type { Recipient, SendOptions, SendResult } from "./types.ts";
+import type {
+  DeliveryResult,
+  Recipient,
+  SendOptions,
+  SendResult,
+} from "./types.ts";
 
 export interface SendDeps {
   api: ApiClient;
@@ -41,8 +46,11 @@ export async function send(
 
   const batchSize = opts.batchSize ?? 20;
   const delayMs = opts.delayMs ?? 1000;
+  const results: DeliveryResult[] = [];
+  const failures: Array<
+    { subscriberId: string; email: string; error: string }
+  > = [];
   let sent = 0;
-  const failures: Array<{ email: string; error: string }> = [];
 
   for (let i = 0; i < recipients.length; i += batchSize) {
     const batch = recipients.slice(i, i + batchSize);
@@ -54,10 +62,14 @@ export async function send(
           recipient: r,
         });
         sent++;
+        results.push({ subscriberId: r.subscriberId, status: "sent" });
       } catch (err) {
-        failures.push({
-          email: r.email,
-          error: err instanceof Error ? err.message : String(err),
+        const error = err instanceof Error ? err.message : String(err);
+        failures.push({ subscriberId: r.subscriberId, email: r.email, error });
+        results.push({
+          subscriberId: r.subscriberId,
+          status: "failed",
+          error,
         });
       }
     }
@@ -67,7 +79,7 @@ export async function send(
 
   const allFailed = sent === 0 && recipients.length > 0;
   if (!opts.skipMarkSent && !allFailed) {
-    await deps.api.markSent(feedId, articleId, sent);
+    await deps.api.markSent(feedId, articleId, results);
     log("✓ Article marqué comme envoyé.");
   }
   return { sent, failed: failures.length, failures };

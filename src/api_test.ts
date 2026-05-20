@@ -85,9 +85,9 @@ Deno.test("fetchPackage: 400 JSON error throws ApiError", async () => {
 });
 
 // ---------------------------------------------------------------------------
-// Test C — markSent POSTs correct body/method and returns void on 200
+// Test C — markSent POSTs the per-recipient results array and returns void
 // ---------------------------------------------------------------------------
-Deno.test("markSent: POSTs sentToCount and returns void on 200", async () => {
+Deno.test("markSent: POSTs results array and returns void on 200", async () => {
   let capturedUrl = "";
   let capturedInit: RequestInit | undefined;
 
@@ -102,7 +102,10 @@ Deno.test("markSent: POSTs sentToCount and returns void on 200", async () => {
     "rcl_test",
     mockFetch,
   );
-  const result = await client.markSent("feed_X", "art_Y", 42);
+  const result = await client.markSent("feed_X", "art_Y", [
+    { subscriberId: "sub_1", status: "sent" },
+    { subscriberId: "sub_2", status: "failed", error: "550 mailbox full" },
+  ]);
 
   assert(
     capturedUrl.endsWith("/api/v1/feeds/feed_X/articles/art_Y/mark-sent"),
@@ -113,6 +116,11 @@ Deno.test("markSent: POSTs sentToCount and returns void on 200", async () => {
     (capturedInit?.headers as Record<string, string>)["Content-Type"],
     "application/json",
   );
-  assertEquals(JSON.parse(capturedInit?.body as string), { sentToCount: 42 });
+  assertEquals(JSON.parse(capturedInit?.body as string), {
+    results: [
+      { subscriberId: "sub_1", status: "sent" },
+      { subscriberId: "sub_2", status: "failed", error: "550 mailbox full" },
+    ],
+  });
   assertEquals(result, undefined);
 });

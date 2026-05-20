@@ -1,4 +1,4 @@
-import type { SendPackage } from "./types.ts";
+import type { DeliveryResult, SendPackage } from "./types.ts";
 
 const PACKAGE_PATH = (f: string, a: string) =>
   `/api/v1/feeds/${f}/articles/${a}/package`;
@@ -10,7 +10,7 @@ export interface ApiClient {
   markSent(
     feedId: string,
     articleId: string,
-    sentToCount: number,
+    results: DeliveryResult[],
   ): Promise<void>;
 }
 
@@ -56,13 +56,13 @@ export function createApiClient(
       await ensureOk(res);
       return await res.json() as SendPackage;
     },
-    async markSent(feedId, articleId, sentToCount) {
+    async markSent(feedId, articleId, results) {
       const res = await fetchImpl(
         `${base}${MARK_SENT_PATH(feedId, articleId)}`,
         {
           method: "POST",
           headers: { ...headers, "Content-Type": "application/json" },
-          body: JSON.stringify({ sentToCount }),
+          body: JSON.stringify({ results }),
         },
       );
       await ensureOk(res);

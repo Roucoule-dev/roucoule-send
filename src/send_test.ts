@@ -1,7 +1,7 @@
 import { assertEquals } from "@std/assert";
 import type { ApiClient } from "./api.ts";
 import type { SendArgs, SmtpSender } from "./smtp.ts";
-import type { Recipient, SendPackage } from "./types.ts";
+import type { DeliveryResult, Recipient, SendPackage } from "./types.ts";
 import { send } from "./send.ts";
 
 // ---------------------------------------------------------------------------
@@ -20,21 +20,21 @@ function r(email: string): Recipient {
 
 function makeMockApi(pkg: SendPackage): ApiClient & {
   markSentCalls: Array<
-    { feedId: string; articleId: string; sentToCount: number }
+    { feedId: string; articleId: string; results: DeliveryResult[] }
   >;
 } {
   const markSentCalls: Array<{
     feedId: string;
     articleId: string;
-    sentToCount: number;
+    results: DeliveryResult[];
   }> = [];
   return {
     markSentCalls,
     async fetchPackage(_feedId, _articleId) {
       return await Promise.resolve(pkg);
     },
-    async markSent(feedId, articleId, sentToCount) {
-      markSentCalls.push({ feedId, articleId, sentToCount });
+    async markSent(feedId, articleId, results) {
+      markSentCalls.push({ feedId, articleId, results });
       return await Promise.resolve();
     },
   };
@@ -89,7 +89,11 @@ Deno.test("A — happy path: 3 recipients, no failures", async () => {
   assertEquals(result, { sent: 3, failed: 0, failures: [] });
   assertEquals(sender.calls.length, 3);
   assertEquals(api.markSentCalls.length, 1);
-  assertEquals(api.markSentCalls[0].sentToCount, 3);
+  assertEquals(api.markSentCalls[0].results, [
+    { subscriberId: "sub_alice@example.com", status: "sent" },
+    { subscriberId: "sub_bob@example.com", status: "sent" },
+    { subscriberId: "sub_carol@example.com", status: "sent" },
+  ]);
 });
 
 Deno.test("B — dry-run: no emails sent, no markSent", async () => {
@@ -140,7 +144,9 @@ Deno.test("C — filter: only matching recipient is sent", async () => {
   assertEquals(sender.calls.length, 1);
   assertEquals(sender.calls[0].recipient.email, "alice@example.com");
   assertEquals(api.markSentCalls.length, 1);
-  assertEquals(api.markSentCalls[0].sentToCount, 1);
+  assertEquals(api.markSentCalls[0].results, [
+    { subscriberId: "sub_alice@example.com", status: "sent" },
+  ]);
 });
 
 Deno.test("D — partial failures: one recipient fails", async () => {
@@ -166,10 +172,19 @@ Deno.test("D — partial failures: one recipient fails", async () => {
   assertEquals(result.sent, 2);
   assertEquals(result.failed, 1);
   assertEquals(result.failures.length, 1);
+  assertEquals(result.failures[0].subscriberId, "sub_bob@example.com");
   assertEquals(result.failures[0].email, "bob@example.com");
   assertEquals(result.failures[0].error, "SMTP error for bob@example.com");
   assertEquals(api.markSentCalls.length, 1);
-  assertEquals(api.markSentCalls[0].sentToCount, 2);
+  assertEquals(api.markSentCalls[0].results, [
+    { subscriberId: "sub_alice@example.com", status: "sent" },
+    {
+      subscriberId: "sub_bob@example.com",
+      status: "failed",
+      error: "SMTP error for bob@example.com",
+    },
+    { subscriberId: "sub_carol@example.com", status: "sent" },
+  ]);
 });
 
 Deno.test("E — all-fail: markSent is NOT called", async () => {

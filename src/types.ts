@@ -35,8 +35,14 @@ export interface SendOptions {
   skipMarkSent?: boolean;
 }
 
+export interface DeliveryResult {
+  subscriberId: string;
+  status: "sent" | "failed";
+  error?: string;
+}
+
 export interface SendResult {
   sent: number;
   failed: number;
-  failures: Array<{ email: string; error: string }>;
+  failures: Array<{ subscriberId: string; email: string; error: string }>;
 }
