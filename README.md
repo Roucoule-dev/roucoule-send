@@ -5,7 +5,7 @@
 
 [![JSR](https://jsr.io/badges/@roucoule/send)](https://jsr.io/@roucoule/send)
 [![npm](https://img.shields.io/npm/v/@roucoule/send.svg)](https://www.npmjs.com/package/@roucoule/send)
-[![CI](https://github.com/thomascarvalho/roucoule-send/actions/workflows/ci.yml/badge.svg)](https://github.com/thomascarvalho/roucoule-send/actions/workflows/ci.yml)
+[![CI](https://github.com/Roucoule-dev/roucoule-send/actions/workflows/ci.yml/badge.svg)](https://github.com/Roucoule-dev/roucoule-send/actions/workflows/ci.yml)
 
 Roucoule itself is a closed-source SaaS, but **this client is open**: it handles
 your SMTP credentials, so you can audit exactly what happens to them. They never

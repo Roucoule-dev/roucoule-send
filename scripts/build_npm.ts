@@ -10,7 +10,7 @@
 import { build, emptyDir } from "@deno/dnt";
 
 const version = (Deno.args[0] ?? "0.0.0").replace(/^v/, "");
-const REPO_URL = "https://github.com/thomascarvalho/roucoule-send";
+const REPO_URL = "https://github.com/Roucoule-dev/roucoule-send";
 
 await emptyDir("./npm");
 

@@ -2,7 +2,7 @@
  * @roucoule/send — open-source client to send Roucoule newsletters
  * via your own SMTP server.
  *
- * See https://github.com/thomascarvalho/roucoule-send
+ * See https://github.com/Roucoule-dev/roucoule-send
  */
 export { ApiError, createApiClient } from "./api.ts";
 export { createNodemailerSender } from "./smtp.ts";
