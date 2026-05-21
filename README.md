@@ -1,7 +1,7 @@
 # @roucoule/send
 
 > Open-source CLI and library to send [Roucoule](https://roucoule.dev)
-> newsletters via your own SMTP server.
+> emails via your own SMTP server.
 
 [![JSR](https://jsr.io/badges/@roucoule/send)](https://jsr.io/@roucoule/send)
 [![npm](https://img.shields.io/npm/v/@roucoule/send.svg)](https://www.npmjs.com/package/@roucoule/send)
@@ -14,7 +14,7 @@ leave your machine.
 ## Why this exists
 
 Roucoule never sees your SMTP credentials. This package keeps them on your
-machine and sends newsletters directly to your SMTP server, using the Roucoule
+machine and sends emails directly to your SMTP server, using the Roucoule
 API only to fetch article content and report delivery results.
 
 ## Installation
